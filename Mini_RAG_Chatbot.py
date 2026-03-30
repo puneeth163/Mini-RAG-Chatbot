@@ -1,0 +1,86 @@
+# **Build mini RAG Chatbot Pipeline**
+from sentence_transformers.util import similarity
+import os
+import warnings
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+warnings.filterwarnings("ignore")
+
+from transformers import logging
+logging.set_verbosity_error()
+
+
+# =================================
+# MINI RAG SYSTEM Chatbot
+# =================================
+
+#  Install libraries (Run once if not installed)
+# !pip install sentence-transformers scikit-learn
+
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+
+# =================================
+# Step 1: Create Knowledge Base
+# =================================
+
+documents = [
+    "Machine Learning is a subset of artificial intelligence that enables systems to learn from data.",
+    "Deep learning is a branch of machine learning that uses neural networks with multiple layers.",
+    "Natural Language Processing is a field of artificial intelligence focused on understaning and processing human language.",
+    "Large Language Models are powerful AI systems trained on massive text databases.",
+    "Retrieval Agumented generation combines information retrival with text generation models."
+]
+
+
+# =================================
+# Step 2: Load Embeddings Model
+# =================================
+
+print("Loading embedding model...")
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Convert documents into embeddings
+document_embeddings = model.encode(documents)
+print("Documents converted into embeddings.")
+print("Embedding shape: ", document_embeddings.shape)
+
+
+# =================================
+# Step 3: Define RAG Function
+# =================================
+
+def rag_system(query):
+  # Convert query into embedding
+  query_embedding = model.encode([query])
+
+  # Compute similarity scores
+  similarity_scores = cosine_similarity(query_embedding, document_embeddings)
+
+  # Get best mayching document index
+  best_match_index = np.argmax(similarity_scores)
+
+  # Retrieve most relevant document
+  retrieved_document = documents[best_match_index]
+
+  # Return answer
+  return retrieved_document
+
+
+# =================================
+# Step 4: Interactive Chat
+# =================================
+
+print("\nRAG Chatbot is Ready!")
+print("Type 'exit' to stop.\n")
+
+while True:
+  user_input = input("Ask a question: ")
+
+  if user_input.lower() == "exit":
+    print("Stopping the RAG system...")
+    break
+
+  answer = rag_system(user_input)
+  print("Answer: ", answer)
+pip install streamlit
